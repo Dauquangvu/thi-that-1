@@ -3,221 +3,626 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 Bài Thi Trắc Nghiệm</title>
-
+<title>Quiz Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-body{
-    font-family: 'Segoe UI', sans-serif;
-    background:#f0f2f5;
-    margin:0;
-    font-size:20px;
+:root {
+  --bg: #0a0d14;
+  --surface: #111520;
+  --surface2: #161c2d;
+  --border: rgba(255,255,255,0.07);
+  --accent: #4f8ef7;
+  --accent2: #7c5ef7;
+  --green: #22d3a0;
+  --red: #f75e5e;
+  --text: #e8eaf2;
+  --muted: #6b7280;
+  --card-glow: 0 0 0 1px rgba(79,142,247,0.12), 0 8px 32px rgba(0,0,0,0.4);
 }
 
-header{
-    position:sticky;
-    top:0;
-    background:#2c3e50;
-    color:white;
-    padding:12px 20px;
-    display:flex;
-    justify-content:space-between;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
-#timer{font-weight:bold;}
-#timer.urgent{color:red;animation:blink 1s infinite;}
-@keyframes blink{50%{opacity:0;}}
-
-#questionsContainer{
-    max-width:900px;
-    margin:20px auto;
-    padding:10px;
+/* Background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.question-card{
-    background:white;
-    padding:15px;
-    margin-bottom:15px;
-    border-radius:10px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,13,20,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.question-text{font-weight:bold;margin-bottom:10px;}
-
-.answers button{
-    width:100%;
-    margin-bottom:8px;
-    padding:14px;
-    border:none;
-    border-radius:8px;
-    background:#ecf0f1;
-    cursor:pointer;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.3px;
 }
 
-.answers button.selected{background:#3498db;color:white;}
-.answers button.correct{background:#2ecc71;color:white;}
-.answers button.wrong{background:#e74c3c;color:white;}
-
-#submitBtn{
-    display:block;
-    margin:20px auto;
-    padding:12px 20px;
-    font-size:18px;
-    background:#e74c3c;
-    color:white;
-    border:none;
-    border-radius:8px;
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
 }
 
-/* POPUP */
-#resultModal{
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
-    background:rgba(0,0,0,0.6);
-    display:none;
-    justify-content:center;
-    align-items:center;
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.modal-box{
-    background:white;
-    padding:25px;
-    border-radius:12px;
-    text-align:center;
-    width:90%;
-    max-width:350px;
+.progress-pill {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  background: var(--surface2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
 }
 
-.modal-box button{
-    margin-top:15px;
-    padding:10px;
-    border:none;
-    border-radius:8px;
-    background:#3498db;
-    color:white;
+.progress-pill span { color: var(--text); font-weight: 600; }
+
+/* TIMER */
+#timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface2);
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+
+#timer::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+#timer.urgent {
+  border-color: rgba(247,94,94,0.4);
+  color: var(--red);
+}
+#timer.urgent::before { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+/* PROGRESS BAR */
+.progress-bar-wrap {
+  position: sticky;
+  top: 64px;
+  z-index: 99;
+  height: 3px;
+  background: var(--surface2);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.3s ease;
+  box-shadow: 0 0 12px var(--accent);
+  width: 0%;
+}
+
+/* MAIN */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 120px;
+}
+
+/* QUESTION CARD */
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 16px;
+  box-shadow: var(--card-glow);
+  animation: slideIn 0.3s ease both;
+  transition: border-color 0.3s;
+}
+
+.question-card:hover {
+  border-color: rgba(79,142,247,0.2);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.q-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.q-num {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: white;
+  margin-top: 2px;
+}
+
+.q-num.answered {
+  background: linear-gradient(135deg, var(--green), #1ab88a);
+}
+
+.question-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.7;
+  flex: 1;
+}
+
+/* ANSWERS */
+.answers {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-btn {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 14.5px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.answer-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.answer-btn:hover::before { opacity: 1; }
+.answer-btn:hover {
+  border-color: rgba(79,142,247,0.4);
+  background: rgba(79,142,247,0.06);
+  transform: translateX(2px);
+}
+
+.answer-label {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  transition: all 0.18s;
+}
+
+.answer-btn:hover .answer-label {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.answer-btn.selected {
+  border-color: var(--accent);
+  background: rgba(79,142,247,0.1);
+}
+.answer-btn.selected .answer-label {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.answer-btn.correct {
+  border-color: var(--green);
+  background: rgba(34,211,160,0.1);
+}
+.answer-btn.correct .answer-label {
+  background: var(--green);
+  border-color: var(--green);
+  color: #0a0d14;
+}
+
+.answer-btn.wrong {
+  border-color: var(--red);
+  background: rgba(247,94,94,0.1);
+}
+.answer-btn.wrong .answer-label {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+}
+
+.answer-btn:disabled { cursor: default; transform: none; }
+
+/* FOOTER STICKY */
+.footer-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(10,13,20,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.answered-count {
+  font-size: 13px;
+  color: var(--muted);
+}
+.answered-count strong { color: var(--text); }
+
+#submitBtn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+  letter-spacing: -0.2px;
+}
+
+#submitBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(79,142,247,0.45);
+}
+#submitBtn:active { transform: translateY(0); }
+
+/* MODAL */
+#resultModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,7,13,0.85);
+  backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid rgba(79,142,247,0.2);
+  border-radius: 20px;
+  padding: 40px 36px;
+  text-align: center;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 0 0 1px rgba(79,142,247,0.1), 0 40px 80px rgba(0,0,0,0.6);
+  animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes popIn {
+  from { opacity:0; transform: scale(0.85); }
+  to { opacity:1; transform: scale(1); }
+}
+
+.modal-trophy {
+  font-size: 56px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.modal-title {
+  font-size: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.modal-score {
+  font-size: 52px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-review {
+  padding: 11px 24px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-review:hover {
+  border-color: rgba(79,142,247,0.4);
+  background: rgba(79,142,247,0.07);
+}
+
+.btn-retry {
+  padding: 11px 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-retry:hover { opacity: 0.9; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 </style>
 </head>
-
 <body>
 
 <header>
-<h2>🔥 Bài Thi</h2>
-<div id="timer">45:00</div>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    Quiz Pro
+  </div>
+  <div class="header-right">
+    <div class="progress-pill" id="progressPill">0 / 0 câu</div>
+    <div id="timer">45:00</div>
+  </div>
 </header>
 
-<div id="questionsContainer"></div>
-<button id="submitBtn">Nộp bài</button>
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progressFill"></div>
+</div>
 
-<!-- POPUP -->
+<main id="questionsContainer"></main>
+
+<div class="footer-bar">
+  <div class="answered-count" id="answeredCount">Đã trả lời <strong>0</strong> câu</div>
+  <button id="submitBtn">Nộp bài →</button>
+</div>
+
+<!-- MODAL -->
 <div id="resultModal">
   <div class="modal-box">
-    <h2 id="resultText"></h2>
-    <button onclick="reviewAnswers()">📊 Xem đáp án</button>
+    <span class="modal-trophy" id="modalTrophy">🏆</span>
+    <div class="modal-title">Kết quả</div>
+    <div class="modal-score" id="modalScore">--</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-actions">
+      <button class="btn-review" onclick="reviewAnswers()">📊 Xem đáp án</button>
+      <button class="btn-retry" onclick="location.reload()">↺ Làm lại</button>
+    </div>
   </div>
 </div>
 
 <script>
-
 // ===== DATA =====
 const rawQuestions = [
-{
-q:"1+1=?",
-answers:["1","2","3","4"],
-correct:1
-},
-{
-q:"2+2=?",
-answers:["2","3","4","5"],
-correct:2
-}
+  { q: "1 + 1 = ?", answers: ["1","2","3","4"], correct: 1 },
+  { q: "2 + 2 = ?", answers: ["2","3","4","5"], correct: 2 },
+  { q: "5 × 5 = ?", answers: ["10","20","25","30"], correct: 2 },
+  { q: "10 ÷ 2 = ?", answers: ["3","4","5","6"], correct: 2 },
 ];
 
-// ===== RANDOM =====
-const TOTAL_QUESTIONS = Math.min(50, rawQuestions.length);
-const questions = rawQuestions.sort(()=>0.5-Math.random()).slice(0,TOTAL_QUESTIONS);
+const LABELS = ['A','B','C','D'];
+const TOTAL = Math.min(50, rawQuestions.length);
+const questions = [...rawQuestions].sort(() => 0.5 - Math.random()).slice(0, TOTAL);
 
 const container = document.getElementById("questionsContainer");
 
-// ===== HIỂN THỊ =====
-questions.forEach((q,i)=>{
-    const card=document.createElement("div");
-    card.className="question-card";
+// ===== RENDER =====
+questions.forEach((q, i) => {
+  const idx = [0,1,2,3].sort(() => 0.5 - Math.random());
+  q.shuffledAnswers = idx.map(x => q.answers[x]);
+  q.shuffledCorrect = idx.indexOf(q.correct);
 
-    let idx=[0,1,2,3].sort(()=>0.5-Math.random());
-    q.shuffledAnswers = idx.map(x=>q.answers[x]);
-    q.shuffledCorrect = idx.indexOf(q.correct);
+  const card = document.createElement("div");
+  card.className = "question-card";
+  card.style.animationDelay = (i * 0.04) + 's';
 
-    card.innerHTML=`<div class="question-text">Câu ${i+1}: ${q.q}</div>`;
-    const ansDiv=document.createElement("div");
-    ansDiv.className="answers";
+  const qNum = document.createElement("div");
+  qNum.className = "q-num";
+  qNum.id = `qnum-${i}`;
+  qNum.textContent = (i + 1).toString().padStart(2, '0');
 
-    q.shuffledAnswers.forEach((a,j)=>{
-        const btn=document.createElement("button");
-        btn.innerText=a;
-        btn.onclick=()=>{
-            ansDiv.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));
-            btn.classList.add("selected");
-            q.userAnswer=j;
-        };
-        ansDiv.appendChild(btn);
-    });
+  const qText = document.createElement("div");
+  qText.className = "question-text";
+  qText.textContent = q.q;
 
-    card.appendChild(ansDiv);
-    container.appendChild(card);
+  const qHeader = document.createElement("div");
+  qHeader.className = "q-header";
+  qHeader.appendChild(qNum);
+  qHeader.appendChild(qText);
+
+  const ansDiv = document.createElement("div");
+  ansDiv.className = "answers";
+
+  q.shuffledAnswers.forEach((a, j) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn";
+
+    const lbl = document.createElement("span");
+    lbl.className = "answer-label";
+    lbl.textContent = LABELS[j];
+
+    const txt = document.createElement("span");
+    txt.textContent = a;
+
+    btn.appendChild(lbl);
+    btn.appendChild(txt);
+
+    btn.onclick = () => {
+      ansDiv.querySelectorAll(".answer-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      const wasAnswered = q.userAnswer !== undefined;
+      q.userAnswer = j;
+      document.getElementById(`qnum-${i}`).classList.add("answered");
+      if (!wasAnswered) updateProgress();
+    };
+
+    ansDiv.appendChild(btn);
+  });
+
+  card.appendChild(qHeader);
+  card.appendChild(ansDiv);
+  container.appendChild(card);
 });
 
+updateProgress();
+
+// ===== PROGRESS =====
+function updateProgress() {
+  const answered = questions.filter(q => q.userAnswer !== undefined).length;
+  const pct = (answered / TOTAL) * 100;
+  document.getElementById("progressFill").style.width = pct + '%';
+  document.getElementById("progressPill").innerHTML = `<span>${answered}</span> / ${TOTAL} câu`;
+  document.getElementById("answeredCount").innerHTML = `Đã trả lời <strong>${answered}</strong> câu`;
+}
+
 // ===== TIMER =====
-let time=45*60;
-const timerEl=document.getElementById("timer");
+let time = 45 * 60;
+const timerEl = document.getElementById("timer");
 
-const timer=setInterval(()=>{
-    let m=Math.floor(time/60);
-    let s=time%60;
-    timerEl.innerText=`${m}:${s.toString().padStart(2,'0')}`;
-    if(time<=300) timerEl.classList.add("urgent");
-    if(time<=0){clearInterval(timer);submitQuiz();}
-    time--;
-},1000);
+const timer = setInterval(() => {
+  const m = Math.floor(time / 60);
+  const s = time % 60;
+  timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  if (time <= 300) timerEl.classList.add("urgent");
+  if (time <= 0) { clearInterval(timer); submitQuiz(true); }
+  time--;
+}, 1000);
 
-// ===== NỘP =====
-document.getElementById("submitBtn").onclick=submitQuiz;
+// ===== SUBMIT =====
+document.getElementById("submitBtn").onclick = () => submitQuiz(false);
 
-function submitQuiz(){
-    if(questions.some(q=>q.userAnswer===undefined)){
-        alert("Chọn hết đáp án!");
-        return;
-    }
+function submitQuiz(auto) {
+  const unanswered = questions.filter(q => q.userAnswer === undefined).length;
+  if (!auto && unanswered > 0) {
+    if (!confirm(`Còn ${unanswered} câu chưa trả lời. Bạn có chắc muốn nộp?`)) return;
+  }
+  clearInterval(timer);
 
-    clearInterval(timer);
+  let correct = 0;
+  questions.forEach(q => { if (q.userAnswer === q.shuffledCorrect) correct++; });
 
-    let correct=0;
-    questions.forEach(q=>{
-        if(q.userAnswer===q.shuffledCorrect) correct++;
-    });
+  const pct = Math.round((correct / TOTAL) * 100);
 
-    document.getElementById("resultText").innerText=
-    `🎯 Đúng ${correct}/${TOTAL_QUESTIONS} câu`;
+  document.getElementById("modalTrophy").textContent =
+    pct >= 80 ? '🏆' : pct >= 50 ? '📊' : '📝';
+  document.getElementById("modalScore").textContent = `${correct}/${TOTAL}`;
+  document.getElementById("modalSub").textContent = `Tỉ lệ đúng ${pct}% • ${
+    pct >= 80 ? 'Xuất sắc!' : pct >= 50 ? 'Khá tốt!' : 'Cần ôn thêm!'
+  }`;
 
-    document.getElementById("resultModal").style.display="flex";
+  document.getElementById("resultModal").style.display = "flex";
 }
 
-// ===== XEM ĐÁP ÁN =====
-function reviewAnswers(){
-    document.getElementById("resultModal").style.display="none";
+// ===== REVIEW =====
+function reviewAnswers() {
+  document.getElementById("resultModal").style.display = "none";
+  const cards = container.querySelectorAll(".question-card");
 
-    questions.forEach((q,i)=>{
-        const btns=container.children[i].querySelectorAll("button");
-
-        btns.forEach((btn,idx)=>{
-            btn.disabled=true;
-
-            if(idx===q.shuffledCorrect) btn.classList.add("correct");
-            if(q.userAnswer===idx && idx!==q.shuffledCorrect) btn.classList.add("wrong");
-        });
+  questions.forEach((q, i) => {
+    const btns = cards[i].querySelectorAll(".answer-btn");
+    btns.forEach((btn, idx) => {
+      btn.disabled = true;
+      if (idx === q.shuffledCorrect) btn.classList.add("correct");
+      else if (q.userAnswer === idx) btn.classList.add("wrong");
     });
+  });
+  document.getElementById("submitBtn").style.display = "none";
 }
-
 </script>
 </body>
 </html>
