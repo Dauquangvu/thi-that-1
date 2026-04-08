@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Bài Thi Trắc Nghiệm</title>
+
+<style>
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background:#f0f2f5;
+    margin:0;
+    font-size:20px;
+}
+
+header{
+    position:sticky;
+    top:0;
+    background:#2c3e50;
+    color:white;
+    padding:12px 20px;
+    display:flex;
+    justify-content:space-between;
+}
+
+#timer{font-weight:bold;}
+#timer.urgent{color:red;animation:blink 1s infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+#questionsContainer{
+    max-width:900px;
+    margin:20px auto;
+    padding:10px;
+}
+
+.question-card{
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+.question-text{font-weight:bold;margin-bottom:10px;}
+
+.answers button{
+    width:100%;
+    margin-bottom:8px;
+    padding:14px;
+    border:none;
+    border-radius:8px;
+    background:#ecf0f1;
+    cursor:pointer;
+}
+
+.answers button.selected{background:#3498db;color:white;}
+.answers button.correct{background:#2ecc71;color:white;}
+.answers button.wrong{background:#e74c3c;color:white;}
+
+#submitBtn{
+    display:block;
+    margin:20px auto;
+    padding:12px 20px;
+    font-size:18px;
+    background:#e74c3c;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+
+/* POPUP */
+#resultModal{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-box{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    text-align:center;
+    width:90%;
+    max-width:350px;
+}
+
+.modal-box button{
+    margin-top:15px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#3498db;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>🔥 Bài Thi</h2>
+<div id="timer">45:00</div>
+</header>
+
+<div id="questionsContainer"></div>
+<button id="submitBtn">Nộp bài</button>
+
+<!-- POPUP -->
+<div id="resultModal">
+  <div class="modal-box">
+    <h2 id="resultText"></h2>
+    <button onclick="reviewAnswers()">📊 Xem đáp án</button>
+  </div>
+</div>
+
+<script>
+
+// ===== DATA =====
+const rawQuestions = [
+{
+q:"1+1=?",
+answers:["1","2","3","4"],
+correct:1
+},
+{
+q:"2+2=?",
+answers:["2","3","4","5"],
+correct:2
+}
+];
+
+// ===== RANDOM =====
+const TOTAL_QUESTIONS = Math.min(50, rawQuestions.length);
+const questions = rawQuestions.sort(()=>0.5-Math.random()).slice(0,TOTAL_QUESTIONS);
+
+const container = document.getElementById("questionsContainer");
+
+// ===== HIỂN THỊ =====
+questions.forEach((q,i)=>{
+    const card=document.createElement("div");
+    card.className="question-card";
+
+    let idx=[0,1,2,3].sort(()=>0.5-Math.random());
+    q.shuffledAnswers = idx.map(x=>q.answers[x]);
+    q.shuffledCorrect = idx.indexOf(q.correct);
+
+    card.innerHTML=`<div class="question-text">Câu ${i+1}: ${q.q}</div>`;
+    const ansDiv=document.createElement("div");
+    ansDiv.className="answers";
+
+    q.shuffledAnswers.forEach((a,j)=>{
+        const btn=document.createElement("button");
+        btn.innerText=a;
+        btn.onclick=()=>{
+            ansDiv.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));
+            btn.classList.add("selected");
+            q.userAnswer=j;
+        };
+        ansDiv.appendChild(btn);
+    });
+
+    card.appendChild(ansDiv);
+    container.appendChild(card);
+});
+
+// ===== TIMER =====
+let time=45*60;
+const timerEl=document.getElementById("timer");
+
+const timer=setInterval(()=>{
+    let m=Math.floor(time/60);
+    let s=time%60;
+    timerEl.innerText=`${m}:${s.toString().padStart(2,'0')}`;
+    if(time<=300) timerEl.classList.add("urgent");
+    if(time<=0){clearInterval(timer);submitQuiz();}
+    time--;
+},1000);
+
+// ===== NỘP =====
+document.getElementById("submitBtn").onclick=submitQuiz;
+
+function submitQuiz(){
+    if(questions.some(q=>q.userAnswer===undefined)){
+        alert("Chọn hết đáp án!");
+        return;
+    }
+
+    clearInterval(timer);
+
+    let correct=0;
+    questions.forEach(q=>{
+        if(q.userAnswer===q.shuffledCorrect) correct++;
+    });
+
+    document.getElementById("resultText").innerText=
+    `🎯 Đúng ${correct}/${TOTAL_QUESTIONS} câu`;
+
+    document.getElementById("resultModal").style.display="flex";
+}
+
+// ===== XEM ĐÁP ÁN =====
+function reviewAnswers(){
+    document.getElementById("resultModal").style.display="none";
+
+    questions.forEach((q,i)=>{
+        const btns=container.children[i].querySelectorAll("button");
+
+        btns.forEach((btn,idx)=>{
+            btn.disabled=true;
+
+            if(idx===q.shuffledCorrect) btn.classList.add("correct");
+            if(q.userAnswer===idx && idx!==q.shuffledCorrect) btn.classList.add("wrong");
+        });
+    });
+}
+
+</script>
+</body>
+</html>
